@@ -29,29 +29,24 @@ with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) a
         # Set flag to true
         image.flags.writeable = True
         
-        # RGB 2 BGR
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        ret, thresh = cv2.threshold(blur, 127, 255, cv2.THRESH_BINARY)
-
-        thresh = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
-
+        # FONDO NEGRO
+        color = (0,0,0)
+        # IMAGEN DE 100x100 x3 canales
+        img = np.full((360,360,3), color, np.uint8)
         # Detections
-        print(results)
+        print(str(results))
         
         # Rendering results
         if results.multi_hand_landmarks:
             for num, hand in enumerate(results.multi_hand_landmarks):
-                mp_drawing.draw_landmarks(thresh, hand, mp_hands.HAND_CONNECTIONS, 
+                mp_drawing.draw_landmarks(img, hand, mp_hands.HAND_CONNECTIONS, 
                                         mp_drawing.DrawingSpec(color=(121, 22, 76), thickness=2, circle_radius=4),
                                         mp_drawing.DrawingSpec(color=(250, 44, 250), thickness=2, circle_radius=2),
                                          )
             
         
         #cv2.imshow('Hand Tracking', image)
-        cv2.imshow('Just the tracking',thresh)
+        cv2.imshow('Just the tracking',img)
 
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
