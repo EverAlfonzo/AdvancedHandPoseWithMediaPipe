@@ -7,10 +7,10 @@ import os
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture('scene2-camera1.mov')
 
 
-with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
+with mp_hands.Hands(min_detection_confidence=0.9, min_tracking_confidence=0.9) as hands: 
     while cap.isOpened():
         ret, frame = cap.read()
         
@@ -31,17 +31,16 @@ with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) a
         
         # FONDO NEGRO
         color = (0,0,0)
-        # IMAGEN DE 100x100 x3 canales
-        img = np.full((360,360,3), color, np.uint8)
+        # IMAGEN DE 860x720 x3 canales
+        img = np.full((860,720,3), color, np.uint8)
         # Detections
-        print(str(results))
         
         # Rendering results
         if results.multi_hand_landmarks:
             for num, hand in enumerate(results.multi_hand_landmarks):
                 mp_drawing.draw_landmarks(img, hand, mp_hands.HAND_CONNECTIONS, 
-                                        mp_drawing.DrawingSpec(color=(121, 22, 76), thickness=2, circle_radius=4),
-                                        mp_drawing.DrawingSpec(color=(250, 44, 250), thickness=2, circle_radius=2),
+                                        mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2, circle_radius=4),
+                                        mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2, circle_radius=2),
                                          )
             
         
