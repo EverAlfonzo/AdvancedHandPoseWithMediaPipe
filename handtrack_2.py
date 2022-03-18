@@ -67,7 +67,7 @@ def get_label(index, hand, results):
     return output
 
 # For webcam input:
-cap = cv2.VideoCapture('scene2-camera1.mov')
+cap = cv2.VideoCapture(0)
 #cap = cv2.VideoCapture(0)
 with mp_hands.Hands(
     model_complexity=0,
@@ -95,15 +95,16 @@ with mp_hands.Hands(
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     hands_crop = []
+    hands_side = []
     if results.multi_hand_landmarks:
       #import pdb; pdb.set_trace()
       for num, hand in enumerate(results.multi_hand_landmarks):
         mp_drawing.draw_landmarks(
-            image,
+            blk,
             hand,
             mp_hands.HAND_CONNECTIONS,
-            mp_drawing_styles.get_default_hand_landmarks_style(),
-            mp_drawing_styles.get_default_hand_connections_style())
+            mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=1, circle_radius=1),
+            mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=1, circle_radius=1))
 
         
 
@@ -112,6 +113,7 @@ with mp_hands.Hands(
         y_max = 0
         x_min = w
         y_min = h
+        padding= 20
         for lm in hand.landmark:
             x, y = int(lm.x * w), int(lm.y * h)
             if x > x_max:
@@ -122,21 +124,36 @@ with mp_hands.Hands(
                 y_max = y
             if y < y_min:
                 y_min = y
-        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
-        mp_drawing.draw_landmarks(image, hand, mp_hands.HAND_CONNECTIONS)
-        hands_crop.append(image[y_min:, :x_max,:])
+        #cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+        #cv2.circle(image,(x_min,y_min), 2,(0,0,255), 2)
+        #cv2.circle(image,(x_max,y_max), 2,(0,255,0), 2)
+        #mp_drawing.draw_landmarks(blk, hand, mp_hands.HAND_CONNECTIONS)
+        hands_crop.append(blk[y_min-padding:y_max+padding, x_min-padding:x_max+padding,:])
         if get_label(num, hand, results):
             text, coord = get_label(num, hand, results)
-            cv2.putText(image, text, coord, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            hands_side.append(text)
 
     # Flip the image horizontally for a selfie-view display.
-    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+    cv2.imshow('MediaPipe Hands', image)
+    print(len(hands_side))
+    print(len(hands_crop))
+    if len(hands_crop)>0 and hands_crop[0].any():
+        if len(hands_side)>0 and 'left' in hands_side[0]:
+          cv2.imshow(f'Hands Izquierda',hands_crop[0])
+        elif len(hands_side)>0 and 'left' not in hands_side[0] and len(hands_crop)>1 and hands_crop[1].any():
+          cv2.imshow(f'Hands Izquierda', hands_crop[1])
+        else:
+          cv2.imshow(f'Hands Izquierda', hands_crop[0])
 
-    if len(hands_crop)>0 and hands_crop[0].any(): 
-        cv2.imshow(f'Hands Izquierda', cv2.flip(hands_crop[0], 1))
 
     if len(hands_crop)>1 and hands_crop[1].any():
-        cv2.imshow(f'Hands Derecha', cv2.flip(hands_crop[1], 1))
+        if len(hands_side)>1 and 'right' in hands_side[1]:
+            cv2.imshow(f'Hands Derecha',hands_crop[1])
+        elif len(hands_side)>1 and 'right' not in hands_side[1]:
+            cv2.imshow(f'Hands Derecha', hands_crop[0])
+        else:
+            cv2.imshow(f'Hands Derecha',hands_crop[1])
+
     #cv2.imwrite(os.path.join('Output Images', '{}.jpg'.format(uuid.uuid1())), blk)
 
     if cv2.waitKey(5) & 0xFF == 27:
