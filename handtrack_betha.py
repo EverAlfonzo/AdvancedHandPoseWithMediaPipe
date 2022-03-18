@@ -2,6 +2,7 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import uuid
+import imutils
 import os
 
 mp_drawing = mp.solutions.drawing_utils
@@ -11,21 +12,26 @@ cap = cv2.VideoCapture('videos_prueba/semana_papa.mp4')
 
 fps = cap.get(cv2.CAP_PROP_FPS)
 output_image_array = []
-fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 size=(860,720)
-out = cv2.VideoWriter('project.mp4',fourcc, fps, size)
+
 #cap = cv2.VideoCapture(0)
 
-
+i=0
+os.mkdir('semana_papa')
 with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands: 
     while cap.isOpened():
+        i+=1
         ret, frame = cap.read()
         if not ret:
             print("Ignoring empty camera frame.")
             # If loading a video, use 'break' instead of 'continue'.
             break
         ret, frame = cap.read()
-        
+        (h,w,c) = frame.shape
+        if i==1:
+            out = cv2.VideoWriter('project.avi',fourcc, fps, (h,w))
+
         # BGR 2 RGB
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
@@ -44,7 +50,7 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) a
         # FONDO NEGRO
         color = (0,0,0)
         # IMAGEN DE 860x720 x3 canales
-        img = np.full((860,720,3), color, np.uint8)
+        img = np.full((h,w,3), color, np.uint8)
         # Detections
         
         # Rendering results
@@ -55,15 +61,23 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) a
                                         mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2, circle_radius=4),
                                         mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2, circle_radius=2),
                                          )
-            
+        out.write(img)
         #cv2.imshow('Hand Tracking', image)
         #cv2.imshow('Just the tracking',img)
         
-        out.write(img)
-        cv2.imwrite(os.path.join('Output Images', '{}.jpg'.format(uuid.uuid1())), img)
+        cv2.imwrite(os.path.join('semana_papa', '{}.jpg'.format(i)), img)
 
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
+
+i=1
+while(True):
+    path = f'semana_papa/{i}.jpg'
+    frame = cv2.imread(path)
+    if frame.any( ):
+        out.write(frame)
+    else:
+        break
 
 out.release()
 cap.release()
