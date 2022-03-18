@@ -67,7 +67,7 @@ def get_label(index, hand, results):
     return output
 
 # For webcam input:
-cap = cv2.VideoCapture('scene2-camera1.mov')
+cap = cv2.VideoCapture(0)
 #cap = cv2.VideoCapture(0)
 with mp_hands.Hands(
     model_complexity=0,
