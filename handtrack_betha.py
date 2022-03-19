@@ -2,24 +2,24 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import uuid
-import imutils
 import os
+import create_video
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-cap = cv2.VideoCapture('videos_prueba/semana_papa.mp4')
+cap = cv2.VideoCapture('scene2-camera1.mov')
 
 fps = cap.get(cv2.CAP_PROP_FPS)
 output_image_array = []
-fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+fourcc = 'DIVX'
 size=(860,720)
 
 #cap = cv2.VideoCapture(0)
 
 i=0
 os.mkdir('semana_papa')
-with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands: 
+with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
     while cap.isOpened():
         i+=1
         ret, frame = cap.read()
@@ -29,8 +29,8 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) a
             break
         ret, frame = cap.read()
         (h,w,c) = frame.shape
-        if i==1:
-            out = cv2.VideoWriter('project.avi',fourcc, fps, (h,w))
+        #if i==1:
+        #    out = cv2.VideoWriter('project.avi',fourcc, fps, (h,w))
 
         # BGR 2 RGB
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -58,27 +58,20 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) a
             
             for num, hand in enumerate(results.multi_hand_landmarks):
                 mp_drawing.draw_landmarks(img, hand, mp_hands.HAND_CONNECTIONS, 
-                                        mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2, circle_radius=4),
-                                        mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2, circle_radius=2),
+                                        mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=1, circle_radius=1),
+                                        mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=1, circle_radius=1),
                                          )
-        out.write(img)
+        #out.write(img)
         #cv2.imshow('Hand Tracking', image)
         #cv2.imshow('Just the tracking',img)
         
-        cv2.imwrite(os.path.join('semana_papa', '{}.jpg'.format(i)), img)
+        cv2.imwrite(os.path.join('semana_papa', '{}.jpg'.format(str.rjust(str(i),6,'0'))), img)
 
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
-i=1
-while(True):
-    path = f'semana_papa/{i}.jpg'
-    frame = cv2.imread(path)
-    if frame.any( ):
-        out.write(frame)
-    else:
-        break
+create_video.create_video(img_dir='semana_papa',fps=5, fourcc=fourcc, video="project.avi")
 
-out.release()
+#out.release()
 cap.release()
 cv2.destroyAllWindows()
