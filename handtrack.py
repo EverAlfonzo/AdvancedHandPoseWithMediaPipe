@@ -9,7 +9,7 @@ mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
 def max_detection(file_name, vid_dir, padding=0, resize=False):
-    cap = cv2.VideoCapture(F'{vid_dir}/{file_name}.mp4')
+    cap = cv2.VideoCapture(os.path.join(vid_dir,f'{file_name}.mp4'))
 
 
     with mp_hands.Hands(min_detection_confidence=0.3, min_tracking_confidence=0.3) as hands:
@@ -48,7 +48,7 @@ def max_detection(file_name, vid_dir, padding=0, resize=False):
 
 def hands_extraction(file_name,vid_dir, resize=(299,299)):
     #file_name="WIFI"
-    cap = cv2.VideoCapture(f'{vid_dir}/{file_name}.mp4')
+    cap = cv2.VideoCapture(os.path.join(vid_dir,f'{file_name}.mp4'))
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     output_image_array = []
