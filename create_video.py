@@ -125,5 +125,3 @@ def create_video(img_dir,fourcc,video,verbose=False,fps=1):
     video.release()
 
 
-if __name__ == '__main__':
-    main()

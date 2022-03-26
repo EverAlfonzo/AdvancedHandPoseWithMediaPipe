@@ -122,3 +122,8 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
 
 def main():
     hands_extraction('WIFI','W')
+
+
+
+if __name__ == '__main__':
+    main()
