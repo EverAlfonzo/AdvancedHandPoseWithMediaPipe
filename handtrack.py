@@ -53,7 +53,8 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
     fps = cap.get(cv2.CAP_PROP_FPS)
     output_image_array = []
     fourcc = 'DIVX'
-    x_max, y_max, x_min, y_min = max_detection(file_name, vid_dir, resize=resize)
+    #TODO: detectar los maximos y minimos
+    #x_max, y_max, x_min, y_min = max_detection(file_name, vid_dir, resize=resize)
     #print((x_max,y_max,x_min,y_min))
 
     #cap = cv2.VideoCapture(0)
@@ -69,6 +70,7 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
                 # If loading a video, use 'break' instead of 'continue'.
                 break
             (h,w,c) = frame.shape
+            frame = cv2.resize(frame, resize)
             #print((h,w,c))
             #if i==1:
             #    out = cv2.VideoWriter('project.avi',fourcc, fps, (h,w))
@@ -91,7 +93,7 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
             # FONDO NEGRO
             color = (0,0,0)
             # IMAGEN DE 860x720 x3 canales
-            img = np.full((y_min,x_min,3), color, np.uint8)
+            img = np.full((299,299,3), color, np.uint8)
 
             # Detections
             
@@ -107,9 +109,12 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
             #cv2.imshow('Hand Tracking', image)
             #cv2.imshow('Just the tracking',img)
             #print(f'shape before: {img.shape}')
-            img = img[y_max:y_min, x_max:x_min,:]
+            #img = img[y_max:y_min, x_max:x_min,:]
+            
             #print(f'shape after: {img.shape}')
-            cv2.imwrite(os.path.join(file_name, '{}.jpg'.format(str.rjust(str(i),6,'0'))), img)
+                cv2.imwrite(os.path.join(file_name, '{}.jpg'.format(str.rjust(str(i),6,'0'))), img)
+            else:
+                i-=1
 
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
@@ -121,7 +126,7 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
     cv2.destroyAllWindows()
 
 def main():
-    hands_extraction('WIFI','W')
+    hands_extraction('abajo_mama_1','prueba3')
 
 
 

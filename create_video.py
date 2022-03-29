@@ -105,7 +105,7 @@ def create_video(img_dir,fourcc,video,verbose=False,fps=1):
                 img_files.append(osp.join(r, file))
 
     # Write video
-    max_frame_width = max(img_widths)
+    max_frame_width = max(img_widths or img_w)
     max_frame_height = max(img_heights)
     frame_shape = (max_frame_width, max_frame_height)
     fourcc = cv2.VideoWriter_fourcc(*fourcc)
