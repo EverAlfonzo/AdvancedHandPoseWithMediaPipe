@@ -61,7 +61,7 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
 
     i=0
     os.mkdir(file_name)
-    with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands: 
+    with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
         while cap.isOpened():
             i+=1
             ret, frame = cap.read()
@@ -126,7 +126,7 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
     cv2.destroyAllWindows()
 
 def main():
-    hands_extraction('abajo_mama_1','prueba3')
+    hands_extraction('marzo_kuki','videos_prueba')
 
 
 
