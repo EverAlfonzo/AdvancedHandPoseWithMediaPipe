@@ -10,7 +10,7 @@ mp_hands = mp.solutions.hands
 cap = cv2.VideoCapture(0)
 
 
-with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
+with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.3) as hands: 
     while cap.isOpened():
         ret, frame = cap.read()
         

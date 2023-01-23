@@ -121,7 +121,7 @@ def hands_extraction(file_name,vid_dir, resize=(299,299)):
     cv2.destroyAllWindows()
 
 def main():
-    hands_extraction('WIFI','W')
+    hands_extraction('WIFI', 'data/W')
 
 
 
