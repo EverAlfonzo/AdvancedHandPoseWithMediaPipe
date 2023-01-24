@@ -1,0 +1,8 @@
+*.txt
+*.avi
+.idea/
+__pycache__/
+*.mov
+data/
+output/
+Test/*
