@@ -1,121 +1,74 @@
 import csv
 import getopt
-import os
 import glob
+import os
 import sys
 
 import cv2
 import mediapipe as mp
 import numpy as np
 
-import create_video
-
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
 
-def max_detection(file_name, vid_dir, padding=0, resize=False):
-    cap = cv2.VideoCapture(os.path.join(vid_dir, f'{file_name}.mp4'))
-
-    with mp_hands.Hands(min_detection_confidence=0.3, min_tracking_confidence=0.3) as hands:
-        while cap.isOpened():
-            ret, frame = cap.read()
-
-            if not ret:
-                print("Ignoring empty camera: max_detection fase")
-                break
-            if resize:
-                frame = cv2.resize(frame, resize)
-            (h, w, c) = frame.shape
-            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            image = cv2.flip(image, 1)
-            image.flags.writeable = False
-            results = hands.process(image)
-            image.flags.writeable = True
-
-            x_max = 0
-            y_max = 0
-            x_min = w
-            y_min = h
-            if results.multi_hand_landmarks:
-                for num, hand in enumerate(results.multi_hand_landmarks):
-                    for lm in hand.landmark:
-                        x, y = int(lm.x * w), int(lm.y * h)
-                        if x > x_max:
-                            x_max = x
-                        if x < x_min:
-                            x_min = x
-                        if y > y_max:
-                            y_max = y
-                        if y < y_min:
-                            y_min = y
-    return (x_max + padding, y_max + padding, max(x_min - padding, 0), max(y_min - padding, 0))
-
-
 def get_video_parts(video_path):
     parts = video_path.split(os.path.sep)
+    # nombre de archivo de video
     filename = parts[3]
+    # nombre de archivo de video sin extension
     filename_no_ext = filename.split('.')[0]
+    # clase a la que pertenece el video
     classname = parts[2]
+    # si el video procesado pertenece al grupo de test o train
     train_or_test = parts[1]
 
     return train_or_test, classname, filename_no_ext, filename
 
 
-def get_nb_frames_for_video(video_parts):
-    train_or_test, classname, filename_no_ext, _ = video_parts
-    generated_files = glob.glob(os.path.join(train_or_test, classname,
-                                             filename_no_ext + '*.jpg'))
-    return len(generated_files)
-
-
 def hands_extraction(vid_dir, out_dir, resize=(299, 299)):
     data_file = []
     folders = ['train', 'test']
-    list_paths = []
-    for subdir, dirs, files in os.walk(vid_dir):
-        for file in files:
-            # print os.path.join(subdir, file)
-            filepath = subdir + os.sep + file
-            list_paths.append(filepath)
     print(os.path.join(out_dir))
+    # si el directorio output no existe, se crea
     if not os.path.exists(os.path.join(out_dir)):
         os.mkdir(os.path.join(out_dir))
+    # se hace un recorrido en los directorios test y train
     for folder in folders:
         print(os.path.join(out_dir, folder))
+        # si en el directorio de salida no existe el folder actual (test o train), se crea
         if not os.path.exists(os.path.join(out_dir, folder)):
             os.mkdir(os.path.join(out_dir, folder))
         print(folder)
+        # se crea una lista de todas las carpetas en el directorio folder (test o train) que corresponden a las
+        # clases (palabras)
         class_folders = glob.glob(os.path.join(vid_dir, folder, '*'))
         print(class_folders)
+        # se recorre cada carpeta en el listado class_folders
         for vid_class in class_folders:
+            # se crea una lista de todos los videos encontrados en la clase actual
             class_files = glob.glob(os.path.join(vid_class, '*'))
 
+            # se analiza cada video encontrado
             for file_name in class_files:
                 print(file_name)
-                # file_path, file = file_name.split('/')
-                # name, ext = file.split('.')
 
+                # se obtienen los datos relevantes del video actual
                 video_parts = get_video_parts(file_name)
 
+                # se almacenan los datos del video
                 train_or_test, classname, filename_no_ext, filename = video_parts
-
+                # se carga el video para su análisis
                 cap = cv2.VideoCapture(file_name)
-                fps = cap.get(cv2.CAP_PROP_FPS)
-                output_image_array = []
-                fourcc = 'DIVX'
-                # TODO: detectar los maximos y minimos
-                # x_max, y_max, x_min, y_min = max_detection(file_name, vid_dir, resize=resize)
-                # print((x_max,y_max,x_min,y_min))
-
-                # cap = cv2.VideoCapture(0)
 
                 i = 0
 
+                # si la carpeta de clase no existe, se crea
                 print(os.path.join(out_dir, train_or_test, classname))
                 if not os.path.exists(os.path.join(out_dir, train_or_test, classname)):
                     os.mkdir(os.path.join(out_dir, train_or_test, classname))
 
+                # se utiliza la biblioteca mediapipe para la detección de las manos en los videos
                 with mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.4) as hands:
                     nb_frames = 0
                     while cap.isOpened():
@@ -159,7 +112,7 @@ def hands_extraction(vid_dir, out_dir, resize=(299, 299)):
                                                           mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=1,
                                                                                  circle_radius=1),
                                                           )
-
+                            # se escribe cada frame en el directorio de salida que le corresponda a su clase
                             cv2.imwrite(os.path.join(out_dir, train_or_test, classname,
                                                      '{}{}.jpg'.format(filename_no_ext, str.rjust(str(i), 6, '0'))),
                                         img)
@@ -169,14 +122,12 @@ def hands_extraction(vid_dir, out_dir, resize=(299, 299)):
 
                 if cv2.waitKey(10) & 0xFF == ord('q'):
                     break
-                # create_video.create_video(img_dir=f"{out_dir}/{name}", fps=int(fps / 3), fourcc=fourcc,
-                #                           video=f"{out_dir}/{name}.avi")
-
-                # out.release()
+                # se guardan los datos relevantes de cada video procesado
                 data_file.append([train_or_test, classname, filename_no_ext, nb_frames])
 
                 cap.release()
                 cv2.destroyAllWindows()
+    # se escriben los datos relevantes de los videos procesados en el archivo data_file.csv
     with open(os.path.join(out_dir, 'data_file.csv'), 'w') as fout:
         writer = csv.writer(fout)
         writer.writerows(data_file)
