@@ -1,3 +1,4 @@
+import csv
 import getopt
 import os
 import glob
@@ -61,8 +62,15 @@ def get_video_parts(video_path):
     return train_or_test, classname, filename_no_ext, filename
 
 
-def hands_extraction(vid_dir, out_dir, resize=(399, 299)):
-    # file_name="WIFI"
+def get_nb_frames_for_video(video_parts):
+    train_or_test, classname, filename_no_ext, _ = video_parts
+    generated_files = glob.glob(os.path.join(train_or_test, classname,
+                                             filename_no_ext + '*.jpg'))
+    return len(generated_files)
+
+
+def hands_extraction(vid_dir, out_dir, resize=(299, 299)):
+    data_file = []
     folders = ['train', 'test']
     list_paths = []
     for subdir, dirs, files in os.walk(vid_dir):
@@ -70,8 +78,13 @@ def hands_extraction(vid_dir, out_dir, resize=(399, 299)):
             # print os.path.join(subdir, file)
             filepath = subdir + os.sep + file
             list_paths.append(filepath)
-
+    print(os.path.join(out_dir))
+    if not os.path.exists(os.path.join(out_dir)):
+        os.mkdir(os.path.join(out_dir))
     for folder in folders:
+        print(os.path.join(out_dir, folder))
+        if not os.path.exists(os.path.join(out_dir, folder)):
+            os.mkdir(os.path.join(out_dir, folder))
         print(folder)
         class_folders = glob.glob(os.path.join(vid_dir, folder, '*'))
         print(class_folders)
@@ -98,17 +111,13 @@ def hands_extraction(vid_dir, out_dir, resize=(399, 299)):
                 # cap = cv2.VideoCapture(0)
 
                 i = 0
-                print(os.path.join(out_dir))
-                if not os.path.exists(os.path.join(out_dir)):
-                    os.mkdir(os.path.join(out_dir))
-                print(os.path.join(out_dir, train_or_test))
-                if not os.path.exists(os.path.join(out_dir, train_or_test)):
-                    os.mkdir(os.path.join(out_dir, train_or_test))
+
                 print(os.path.join(out_dir, train_or_test, classname))
                 if not os.path.exists(os.path.join(out_dir, train_or_test, classname)):
                     os.mkdir(os.path.join(out_dir, train_or_test, classname))
 
-                with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands:
+                with mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.4) as hands:
+                    nb_frames = 0
                     while cap.isOpened():
                         i += 1
                         ret, frame = cap.read()
@@ -116,11 +125,7 @@ def hands_extraction(vid_dir, out_dir, resize=(399, 299)):
                             print("Ignoring empty camera frame.")
                             # If loading a video, use 'break' instead of 'continue'.
                             break
-                        (h, w, c) = frame.shape
                         frame = cv2.resize(frame, resize)
-                        # print((h,w,c))
-                        # if i==1:
-                        #    out = cv2.VideoWriter('project.avi',fourcc, fps, (h,w))
 
                         # BGR 2 RGB
                         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -158,6 +163,7 @@ def hands_extraction(vid_dir, out_dir, resize=(399, 299)):
                             cv2.imwrite(os.path.join(out_dir, train_or_test, classname,
                                                      '{}{}.jpg'.format(filename_no_ext, str.rjust(str(i), 6, '0'))),
                                         img)
+                            nb_frames = i
                         else:
                             i -= 1
 
@@ -167,8 +173,13 @@ def hands_extraction(vid_dir, out_dir, resize=(399, 299)):
                 #                           video=f"{out_dir}/{name}.avi")
 
                 # out.release()
+                data_file.append([train_or_test, classname, filename_no_ext, nb_frames])
+
                 cap.release()
                 cv2.destroyAllWindows()
+    with open(os.path.join(out_dir, 'data_file.csv'), 'w') as fout:
+        writer = csv.writer(fout)
+        writer.writerows(data_file)
 
 
 def main(argv):
